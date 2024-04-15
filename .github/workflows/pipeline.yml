@@ -13,8 +13,6 @@ jobs:
 
   tf-test:
     name: Terraform Test
-    needs: 
-      - build
     runs-on: ubuntu-latest
 
     defaults:
