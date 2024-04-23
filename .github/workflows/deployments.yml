@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
   repository_dispatch:
     types: [deployment]
-  workflow_run:
-    workflows: ["Deploy Infrastructure"]
-    types: 
-      - completed
+  #workflow_run:
+    #workflows: ["Deploy Infrastructure"]
+    #types: 
+      #- completed
 
 jobs:
   teste:
