@@ -5,7 +5,7 @@ on:
   #repository_dispatch:
     #types: [deployment]
   workflow_run:
-    workflows: ["Deploy Infrastructure"]
+    workflows: ["Terraform Deploy"]
     types: 
       - completed
 
