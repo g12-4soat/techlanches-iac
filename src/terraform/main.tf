@@ -1,6 +1,24 @@
+module "cognito" {
+  source = "./modules/cognito"
+}
+
 module "lambda" {
   source = "./modules/lambda"
   arn    = data.aws_iam_role.name.arn
+}
+
+module "dynamoDb" {
+  source = "./modules/dynamoDb" 
+  aws_region = var.region
+}
+
+module "rds" {
+  source = "./modules/rds"
+}
+
+module "eks" {
+  source = "./modules/eks"
+  security_group_id = module.rds.security_group_id
 }
 
 module "apiGateway" {
@@ -12,9 +30,9 @@ module "apiGateway" {
   nome_lambda_cadastro = module.lambda.nome_lambda_cadastro
 }
 
-module "cognito" {
-  source = "./modules/cognito"
-}
+
+
+
 
 # output "url_eks_gateway" {
 #   value = module.apiGateway.url_stage
