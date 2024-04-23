@@ -1,9 +1,9 @@
 name: Apply Deployments
 
 on:
-  #workflow_dispatch:
-  #repository_dispatch:
-    #types: [deployment]
+  workflow_dispatch:
+  repository_dispatch:
+    types: [deployment]
   workflow_run:
     workflows:
       - Deploy Infrastructure
