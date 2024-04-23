@@ -2,12 +2,12 @@ name: Apply Deployments
 
 on:
   workflow_dispatch:
-  repository_dispatch:
-    types: [deployment]
-  #workflow_run:
-    #workflows: ["Deploy Infrastructure"]
-    #types: 
-      #- completed
+  #repository_dispatch:
+    #types: [deployment]
+  workflow_run:
+    workflows: ["Deploy Infrastructure"]
+    types: 
+      - completed
 
 jobs:
   teste:
