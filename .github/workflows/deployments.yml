@@ -38,5 +38,5 @@ jobs:
       - name: Run deploy script
         run: |
           aws eks update-kubeconfig --name eks-techlanches --region us-east-1
-          chmod +x ./k8s/apply-all.sh
+          chmod +x ./src/k8s/apply-all.sh
           ./src/k8s/apply-all.sh
