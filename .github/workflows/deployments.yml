@@ -1,9 +1,14 @@
 name: Apply Deployments
 
 on:
+  push:
+    branches:
+      - main
+  pull_request:
   workflow_dispatch:
-  repository_dispatch:
-    types: [deployment]
+  # workflow_dispatch:
+  # repository_dispatch:
+    # types: [deployment]
   # workflow_run:
   #   workflows:
   #     - Deploy Infrastructure
