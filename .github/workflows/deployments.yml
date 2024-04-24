@@ -1,0 +1,41 @@
+name: Apply Deployments
+
+on:
+  #push:
+    #branches:
+      #- main
+  #pull_request:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [deployment]
+  #workflow_run:
+    #workflows:
+      #- Deploy Infrastructure
+    #types:
+      #- completed
+
+jobs:
+  teste:
+    name: Apply Deployments
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: AWS Deployment
+        run: echo "Deploying..."
+        
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Login to AWS
+        uses: aws-actions/configure-aws-credentials@v1-node16
+        with:
+          aws-region: "us-east-1"
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+
+      - name: Run deploy script
+        run: |
+          aws eks update-kubeconfig --name eks-techlanches --region us-east-1
+          chmod +x ./k8s/apply-all.sh
+          ./k8s/apply-all.sh

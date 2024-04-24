@@ -1,11 +1,18 @@
 terraform {
+  required_version = ">= 0.13"
+
+  required_providers {
+    aws = ">= 3.0"
+    random = ">= 3.0"
+  }
+
   backend "s3" {
     bucket = "tech-lanches-terraform"
-    key    = "tech-lanches-terraform-auth/terraform.tfstate"
+    key    = "tech-lanches-terraform/terraform.tfstate"
     region = "us-east-1"
   }
 }
 
-provider "aws" {
+provider "aws" {  
   region = var.region
 }

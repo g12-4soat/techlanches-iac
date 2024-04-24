@@ -1,4 +1,4 @@
-name: Deploy auth Infrastructure
+name: Deploy Infrastructure
 
 on:
   push:
