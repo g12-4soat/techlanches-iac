@@ -1,21 +1,12 @@
 name: Apply Deployments
 
 on:
-  #push:
-    #branches:
-      #- main
-  #pull_request:
   workflow_dispatch:
   repository_dispatch:
     types: [deployment]
-  #workflow_run:
-    #workflows:
-      #- Deploy Infrastructure
-    #types:
-      #- completed
 
 jobs:
-  teste:
+  deploy-k8s:
     name: Apply Deployments
     runs-on: ubuntu-latest
     
@@ -41,118 +32,123 @@ jobs:
           ./k8s/apply-all.sh
 
 
-##############################################################
+#############################################################
+  tf-test:
+    name: Terraform Test
+    runs-on: ubuntu-latest
 
-  # tf-test:
-  #   name: Terraform Test
-  #   runs-on: ubuntu-latest
+    needs: deploy-k8s
 
-  #   defaults:
-  #       run:
-  #         working-directory: src/terraform-api-gateway
+    defaults:
+        run:
+          working-directory: src/terraform-api-gateway
 
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v3
+    steps:
+      - name: Sleep for 10 minutes
+        run: sleep 600s
+        shell: bash
+        
+      - name: Checkout code
+        uses: actions/checkout@v3
     
-  #     - name: Login to AWS
-  #       uses: aws-actions/configure-aws-credentials@v1-node16
-  #       with:
-  #         aws-region: 'us-east-1'
-  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #         aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+      - name: Login to AWS
+        uses: aws-actions/configure-aws-credentials@v1-node16
+        with:
+          aws-region: 'us-east-1'
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
         
-  #     - name: Setup Terraform
-  #       uses: hashicorp/setup-terraform@v2
-  #       with:
-  #           terraform_version: 1.6.2
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+            terraform_version: 1.6.2
       
-  #     - name: Prepare environment
-  #       id: tf-init
-  #       run: terraform init 
+      - name: Prepare environment
+        id: tf-init
+        run: terraform init 
 
-  #     - name: Terraform fmt
-  #       id: tf-fmt        
-  #       run: terraform fmt --recursive
+      - name: Terraform fmt
+        id: tf-fmt        
+        run: terraform fmt --recursive
 
-  #     - name: Terraform validate
-  #       id: tf-validate        
-  #       run: terraform validate -no-color
+      - name: Terraform validate
+        id: tf-validate        
+        run: terraform validate -no-color
 
-  #     - name: Terraform Plan
-  #       id: tf-plan        
-  #       run: terraform plan -lock=false -no-color -input=false
-  #       continue-on-error: true
+      - name: Terraform Plan
+        id: tf-plan        
+        run: terraform plan -lock=false -no-color -input=false
+        continue-on-error: true
 
-  #     - name: Pull Request Updates
-  #       uses: actions/github-script@v6
-  #       if: github.event_name == 'pull_request'
-  #       env:
-  #         PLAN: ${{ steps.tf-plan.outputs.stdout }}
-  #       with:
-  #         github-token: ${{ secrets.GH_TOKEN }}
-  #         script: |
-  #           const output = `#### Terraform Format and Style 🖌\`${{ steps.tf-fmt.outcome }}\`
-  #           #### Terraform Initialization ⚙️\`${{ steps.tf-init.outcome }}\`
-  #           #### Terraform Validation 🤖\`${{ steps.tf-validate.outcome }}\`
-  #           #### Terraform Plan 📖\`${{ steps.tf-plan.outcome }}\`
-  #           <details><summary>Show Plan</summary>
-  #           \`\`\`terraform\n
-  #           ${process.env.PLAN}
-  #           \`\`\`
-  #           </details>
-  #           *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
-  #           github.rest.issues.createComment({
-  #             issue_number: context.issue.number,
-  #             owner: context.repo.owner,
-  #             repo: context.repo.repo,
-  #             body: output
-  #           })
+      - name: Pull Request Updates
+        uses: actions/github-script@v6
+        if: github.event_name == 'pull_request'
+        env:
+          PLAN: ${{ steps.tf-plan.outputs.stdout }}
+        with:
+          github-token: ${{ secrets.GH_TOKEN }}
+          script: |
+            const output = `#### Terraform Format and Style 🖌\`${{ steps.tf-fmt.outcome }}\`
+            #### Terraform Initialization ⚙️\`${{ steps.tf-init.outcome }}\`
+            #### Terraform Validation 🤖\`${{ steps.tf-validate.outcome }}\`
+            #### Terraform Plan 📖\`${{ steps.tf-plan.outcome }}\`
+            <details><summary>Show Plan</summary>
+            \`\`\`terraform\n
+            ${process.env.PLAN}
+            \`\`\`
+            </details>
+            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
         
-  #     - name: Terraform Plan Status
-  #       if: steps.tf-plan.outcome == 'failure'
-  #       run: exit 1
+      - name: Terraform Plan Status
+        if: steps.tf-plan.outcome == 'failure'
+        run: exit 1
   
-  # tf-deploy:
-  #   name: Terraform Deploy
+  tf-deploy:
+    name: Terraform Deploy
 
-  #   needs: 
-  #     - tf-test
+    needs: 
+      - tf-test
 
-  #   #if: github.ref == 'refs/heads/release' || github.ref == 'refs/heads/main'
+    #if: github.ref == 'refs/heads/release' || github.ref == 'refs/heads/main'
 
-  #   runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
 
-  #   defaults:
-  #       run:
-  #         working-directory: src
+    defaults:
+        run:
+          working-directory: src
           
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v3
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-  #     - name: Login to AWS
-  #       uses: aws-actions/configure-aws-credentials@v3
-  #       with:          
-  #         aws-region: 'us-east-1'
-  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #         aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+      - name: Login to AWS
+        uses: aws-actions/configure-aws-credentials@v3
+        with:          
+          aws-region: 'us-east-1'
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
 
-  #     - name: Configure AWS Dotnet CLI
-  #       run: dotnet tool install -g Amazon.Lambda.Tools
+      - name: Configure AWS Dotnet CLI
+        run: dotnet tool install -g Amazon.Lambda.Tools
       
-  #     - name: Setup Terraform
-  #       uses: hashicorp/setup-terraform@v2
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
 
-  #     - name: Prepare environment
-  #       run: terraform -chdir=terraform-api-gateway/ init 
+      - name: Prepare environment
+        run: terraform -chdir=terraform-api-gateway/ init 
 
-  #     - name: Terraform Plan
-  #       run: terraform -chdir=terraform-api-gateway/ plan -lock=false -no-color -input=false
+      - name: Terraform Plan
+        run: terraform -chdir=terraform-api-gateway/ plan -lock=false -no-color -input=false
 
-  #     - name: Execute terraform apply
-  #       run: terraform -chdir=terraform-api-gateway/ apply -lock=false -auto-approve -input=false
+      - name: Execute terraform apply
+        run: terraform -chdir=terraform-api-gateway/ apply -lock=false -auto-approve -input=false
         
-##############################################################
+#############################################################
