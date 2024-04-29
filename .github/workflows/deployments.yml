@@ -31,13 +31,21 @@ jobs:
           chmod +x ./k8s/apply-all.sh
           ./k8s/apply-all.sh
 
+#############################################################
+  wait_lb:
+    name: Aguardar criação do Load Balancer
+    runs-on: ubuntu-latest
+    needs: deploy-k8s
+    steps:
+      - name: Sleep for 10 minutes
+        run: sleep 600s
 
 #############################################################
   tf-test:
     name: Terraform Test
     runs-on: ubuntu-latest
 
-    needs: deploy-k8s
+    needs: wait_lb
 
     defaults:
         run:
