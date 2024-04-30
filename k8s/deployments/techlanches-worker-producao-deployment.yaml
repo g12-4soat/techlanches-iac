@@ -1,21 +1,20 @@
-# techlanches-worker-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: techlanches-worker
+  name: techlanches-worker-producao
   namespace: techlanches
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: techlanches-worker
+      app: techlanches-worker-producao
   template:
     metadata:
       labels:
-        app: techlanches-worker
+        app: techlanches-worker-producao
     spec:
       containers:
-        - name: techlanches-worker
+        - name: techlanches-worker-producao
           image: g124soat/techlanches-worker:latest
           imagePullPolicy: Always
           resources:

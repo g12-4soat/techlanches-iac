@@ -17,7 +17,7 @@ jobs:
 
     defaults:
         run:
-          working-directory: src/terraform
+          working-directory: src/terraform-infra
 
     steps:
       - name: Checkout code
@@ -115,12 +115,12 @@ jobs:
         uses: hashicorp/setup-terraform@v2
 
       - name: Prepare environment
-        run: terraform -chdir=terraform/ init 
+        run: terraform -chdir=terraform-infra/ init 
 
       - name: Terraform Plan
-        run: terraform -chdir=terraform/ plan -lock=false -no-color -input=false
+        run: terraform -chdir=terraform-infra/ plan -lock=false -no-color -input=false
 
       - name: Execute terraform apply
-        run: terraform -chdir=terraform/ apply -lock=false -auto-approve -input=false
+        run: terraform -chdir=terraform-infra/ apply -lock=false -auto-approve -input=false
         
 ##############################################################
