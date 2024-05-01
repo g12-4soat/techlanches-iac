@@ -25,7 +25,15 @@ spec:
               memory: "500Mi"
           env:
             - name: DOTNET_ENVIRONMENT
-              value: "Production"
+              valueFrom: 
+                configMapKeyRef:
+                  name: techlanches-api-pedido-configmap
+                  key: DotnetEnviroment
+            - name: PAGAMENTO_SERVICE
+              valueFrom: 
+                configMapKeyRef:
+                  name: techlanches-api-pagamento-configmap
+                  key: ServiceName
           livenessProbe:
             httpGet:
               path: /health
