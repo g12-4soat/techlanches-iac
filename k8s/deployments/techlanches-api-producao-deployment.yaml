@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: techlanches-api-producao
+  namespace: techlanches
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: techlanches-api-producao
+  template:
+    metadata:
+      labels:
+        app: techlanches-api-producao
+    spec:
+      containers:
+        - name: techlanches-api-producao
+          image: g124soat/techlanches-producao:latest
+          imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "500Mi"
+          env:
+            - name: DOTNET_ENVIRONMENT
+              valueFrom: 
+                configMapKeyRef:
+                  name: techlanches-api-producao-configmap
+                  key: DotnetEnviroment
+            - name: PEDIDO_SERVICE
+              valueFrom: 
+                configMapKeyRef:
+                  name: techlanches-api-pedido-configmap
+                  key: ServiceName
+          readinessProbe:
+            tcpSocket:
+              port: 5000
+            initialDelaySeconds: 5
+            failureThreshold: 2
+            timeoutSeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 5000
+            initialDelaySeconds: 15
+            failureThreshold: 2
+            timeoutSeconds: 3
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: techlanches-api-producao-service
+  namespace: techlanches
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: nlb
+spec:
+  selector:
+    app: techlanches-api-producao
+  ports:
+    - protocol: TCP
+      port: 5060
+      targetPort: 80
+  type: LoadBalancer

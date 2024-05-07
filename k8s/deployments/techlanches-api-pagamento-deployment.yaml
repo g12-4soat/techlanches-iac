@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: techlanches-api-pedido
+  name: techlanches-api-pagamento
   namespace: techlanches
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: techlanches-api-pedido
+      app: techlanches-api-pagamento
   template:
     metadata:
       labels:
-        app: techlanches-api-pedido
+        app: techlanches-api-pagamento
     spec:
       containers:
-        - name: techlanches-api-pedido
-          image: g124soat/techlanches-pedido:latest
+        - name: techlanches-api-pagamento
+          image: g124soat/techlanches-pagamento:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 80
@@ -27,12 +27,12 @@ spec:
             - name: DOTNET_ENVIRONMENT
               valueFrom: 
                 configMapKeyRef:
-                  name: techlanches-api-pedido-configmap
+                  name: techlanches-api-pagamento-configmap
                   key: DotnetEnviroment
-            - name: PAGAMENTO_SERVICE
+            - name: PEDIDO_SERVICE
               valueFrom: 
                 configMapKeyRef:
-                  name: techlanches-api-pagamento-configmap
+                  name: techlanches-api-pedido-configmap
                   key: ServiceName
           livenessProbe:
             httpGet:
@@ -53,15 +53,15 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: techlanches-api-pedido-service
+  name: techlanches-api-pagamento-service
   namespace: techlanches
   annotations:
     service.beta.kubernetes.io/aws-load-balancer-type: nlb
 spec:
   selector:
-    app: techlanches-api-pedido
+    app: techlanches-api-pagamento
   ports:
     - protocol: TCP
-      port: 5050
+      port: 5055
       targetPort: 80
   type: LoadBalancer
