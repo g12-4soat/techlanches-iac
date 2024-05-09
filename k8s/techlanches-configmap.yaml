@@ -2,6 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: techlanches-api-pagamento-configmap
+  namespace: techlanches
 data:
   DotnetEnviroment: "Production"
   ServiceName: "techlanches-api-pagamento-service"
@@ -12,6 +13,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: techlanches-api-pedido-configmap
+  namespace: techlanches
 data:
   DotnetEnviroment: "Production"
   ServiceName: "techlanches-api-pedido-service"
@@ -22,6 +24,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: techlanches-api-producao-configmap
+  namespace: techlanches
 data:
   DotnetEnviroment: "Production"
   ServiceName: "techlanches-api-producao-service"
