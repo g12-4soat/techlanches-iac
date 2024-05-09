@@ -60,5 +60,5 @@ spec:
   ports:
     - protocol: TCP
       port: 5060
-      targetPort: 80
+      targetPort: 8080
   type: LoadBalancer
