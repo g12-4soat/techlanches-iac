@@ -25,12 +25,12 @@ spec:
             - name: DOTNET_ENVIRONMENT
               valueFrom: 
                 configMapKeyRef:
-                  name: techlanches-api-producao-configmap
+                  name: api-producao-configmap
                   key: DotnetEnviroment
             - name: PEDIDO_SERVICE
               valueFrom: 
                 configMapKeyRef:
-                  name: techlanches-api-pedido-configmap
+                  name: api-pedido-configmap
                   key: ServiceName
           readinessProbe:
             tcpSocket:
@@ -50,7 +50,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: techlanches-api-producao-service
+  name: api-producao-service
   namespace: techlanches
   annotations:
     service.beta.kubernetes.io/aws-load-balancer-type: nlb
@@ -60,5 +60,5 @@ spec:
   ports:
     - protocol: TCP
       port: 5060
-      targetPort: 80
+      targetPort: 8080
   type: LoadBalancer

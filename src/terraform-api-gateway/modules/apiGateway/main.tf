@@ -75,7 +75,23 @@ resource "aws_lambda_permission" "apigateway_lambda_cadastro" {
   source_arn    = "${aws_api_gateway_rest_api.tech_lanches_api_gateweay.execution_arn}/*/*"
 }
 
-data "aws_lb" "eks_lb_api" {}
+data "aws_lb" "eks_lb_api_pedido" {
+   tags = {
+    "kubernetes.io/service-name" = "techlanches/api-pedido-service"
+  }
+}
+
+data "aws_lb" "eks_lb_api_pagamento" {
+   tags = {
+    "kubernetes.io/service-name" = "techlanches/api-pagamento-service"
+  }
+}
+
+data "aws_lb" "eks_lb_api_producao" {
+   tags = {
+    "kubernetes.io/service-name" = "techlanches/api-producao-service"
+  }
+}
 
 data "aws_vpcs" "selected" {
   filter {
@@ -101,11 +117,24 @@ data "aws_subnet" "selected" {
   id = each.value
 }
 
-resource "aws_api_gateway_vpc_link" "main" {
-  name        = "eks-gateway-vpclink"
+resource "aws_api_gateway_vpc_link" "vpc_pedido" {
+  name        = "eks-gateway-vpclink-pedido"
   description = "Eks Gateway VPC Link. Managed by Terraform."
-  target_arns = [data.aws_lb.eks_lb_api.arn]
+  target_arns = [data.aws_lb.eks_lb_api_pedido.arn]
 }
+
+resource "aws_api_gateway_vpc_link" "vpc_pagamento" {
+  name        = "eks-gateway-vpclink-pagamento"
+  description = "Eks Gateway VPC Link. Managed by Terraform."
+  target_arns = [data.aws_lb.eks_lb_api_pagamento.arn]
+}
+
+resource "aws_api_gateway_vpc_link" "vpc_producao" {
+  name        = "eks-gateway-vpclink-producao"
+  description = "Eks Gateway VPC Link. Managed by Terraform."
+  target_arns = [data.aws_lb.eks_lb_api_producao.arn]
+}
+
 resource "aws_api_gateway_rest_api" "main" {
   name        = "eks-gateway"
   description = "Gateway used for EKS. Managed by Terraform."
@@ -113,14 +142,16 @@ resource "aws_api_gateway_rest_api" "main" {
     types = ["REGIONAL"]
   }
 }
-resource "aws_api_gateway_resource" "proxy" {
+
+resource "aws_api_gateway_resource" "proxy_pedido" {
   rest_api_id = aws_api_gateway_rest_api.main.id
   parent_id   = aws_api_gateway_rest_api.main.root_resource_id
-  path_part   = "{proxy+}"
+  path_part   = "pedido"
 }
-resource "aws_api_gateway_method" "proxy" {
+
+resource "aws_api_gateway_method" "proxy_pedido" {
   rest_api_id   = aws_api_gateway_rest_api.main.id
-  resource_id   = aws_api_gateway_resource.proxy.id
+  resource_id   = aws_api_gateway_resource.proxy_pedido.id
   http_method   = "ANY"
   authorization = "NONE"
   request_parameters = {
@@ -129,13 +160,13 @@ resource "aws_api_gateway_method" "proxy" {
   }
 }
 
-resource "aws_api_gateway_integration" "proxy" {
+resource "aws_api_gateway_integration" "proxy_pedido" {
   rest_api_id             = aws_api_gateway_rest_api.main.id
-  resource_id             = aws_api_gateway_resource.proxy.id
+  resource_id             = aws_api_gateway_resource.proxy_pedido.id
   http_method             = "ANY"
   integration_http_method = "ANY"
   type                    = "HTTP_PROXY"
-  uri                     = "http://${data.aws_lb.eks_lb_api.dns_name}:5050/{proxy}"
+  uri                     = "http://${data.aws_lb.eks_lb_api_pedido.dns_name}:5050/{proxy}"
   passthrough_behavior    = "WHEN_NO_MATCH"
   content_handling        = "CONVERT_TO_TEXT"
   request_parameters = {
@@ -144,8 +175,79 @@ resource "aws_api_gateway_integration" "proxy" {
     "integration.request.header.Authorization" = "method.request.header.Authorization"
   }
   connection_type = "VPC_LINK"
-  connection_id   = "${aws_api_gateway_vpc_link.main.id}"
+  connection_id   = "${aws_api_gateway_vpc_link.vpc_pedido.id}"
 }
+
+resource "aws_api_gateway_resource" "proxy_pagamento" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  parent_id   = aws_api_gateway_rest_api.main.root_resource_id
+  path_part   = "pagamento"
+}
+
+resource "aws_api_gateway_method" "proxy_pagamento" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.proxy_pagamento.id
+  http_method   = "ANY"
+  authorization = "NONE"
+  request_parameters = {
+    "method.request.path.proxy"           = true
+    "method.request.header.Authorization" = true
+  }
+}
+
+resource "aws_api_gateway_integration" "proxy_pagamento" {
+  rest_api_id             = aws_api_gateway_rest_api.main.id
+  resource_id             = aws_api_gateway_resource.proxy_pagamento.id
+  http_method             = "ANY"
+  integration_http_method = "ANY"
+  type                    = "HTTP_PROXY"
+  uri                     = "http://${data.aws_lb.eks_lb_api_pagamento.dns_name}:5055/{proxy}"
+  passthrough_behavior    = "WHEN_NO_MATCH"
+  content_handling        = "CONVERT_TO_TEXT"
+  request_parameters = {
+    "integration.request.path.proxy"           = "method.request.path.proxy"
+    "integration.request.header.Accept"        = "'application/json'"
+    "integration.request.header.Authorization" = "method.request.header.Authorization"
+  }
+  connection_type = "VPC_LINK"
+  connection_id   = "${aws_api_gateway_vpc_link.vpc_pagamento.id}"
+}
+
+resource "aws_api_gateway_resource" "proxy_producao" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  parent_id   = aws_api_gateway_rest_api.main.root_resource_id
+  path_part   = "producao"
+}
+
+resource "aws_api_gateway_method" "proxy_producao" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.proxy_producao.id
+  http_method   = "ANY"
+  authorization = "NONE"
+  request_parameters = {
+    "method.request.path.proxy"           = true
+    "method.request.header.Authorization" = true
+  }
+}
+
+resource "aws_api_gateway_integration" "proxy_producao" {
+  rest_api_id             = aws_api_gateway_rest_api.main.id
+  resource_id             = aws_api_gateway_resource.proxy_producao.id
+  http_method             = "ANY"
+  integration_http_method = "ANY"
+  type                    = "HTTP_PROXY"
+  uri                     = "http://${data.aws_lb.eks_lb_api_producao.dns_name}:5060/{proxy}"
+  passthrough_behavior    = "WHEN_NO_MATCH"
+  content_handling        = "CONVERT_TO_TEXT"
+  request_parameters = {
+    "integration.request.path.proxy"           = "method.request.path.proxy"
+    "integration.request.header.Accept"        = "'application/json'"
+    "integration.request.header.Authorization" = "method.request.header.Authorization"
+  }
+  connection_type = "VPC_LINK"
+  connection_id   = "${aws_api_gateway_vpc_link.vpc_producao.id}"
+}
+
 
 resource "aws_api_gateway_deployment" "deployment_eks" {
   rest_api_id = aws_api_gateway_rest_api.main.id
@@ -155,9 +257,13 @@ resource "aws_api_gateway_deployment" "deployment_eks" {
   }
 
   depends_on = [ 
-    aws_api_gateway_integration.proxy,
+    aws_api_gateway_integration.proxy_pagamento,
+    aws_api_gateway_integration.proxy_pedido,
+    aws_api_gateway_integration.proxy_producao,
     aws_api_gateway_rest_api.main,
-    aws_api_gateway_method.proxy
+    aws_api_gateway_method.proxy_pagamento,
+    aws_api_gateway_method.proxy_pedido,
+    aws_api_gateway_method.proxy_producao
     ]
 }
 
