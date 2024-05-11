@@ -75,6 +75,8 @@ resource "aws_lambda_permission" "apigateway_lambda_cadastro" {
   source_arn    = "${aws_api_gateway_rest_api.tech_lanches_api_gateweay.execution_arn}/*/*"
 }
 
+###################################################################################################
+
 data "aws_lb" "eks_lb_api_pedido" {
    tags = {
     "kubernetes.io/service-name" = "techlanches/api-pedido-service"
@@ -143,15 +145,21 @@ resource "aws_api_gateway_rest_api" "main" {
   }
 }
 
-resource "aws_api_gateway_resource" "proxy_pedido" {
+resource "aws_api_gateway_resource" "pedido_proxy" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  parent_id   = aws_api_gateway_resource.pedido.id
+  path_part   = "{proxy+}"
+}
+
+resource "aws_api_gateway_resource" "pedido" {
   rest_api_id = aws_api_gateway_rest_api.main.id
   parent_id   = aws_api_gateway_rest_api.main.root_resource_id
   path_part   = "pedido"
 }
 
-resource "aws_api_gateway_method" "proxy_pedido" {
+resource "aws_api_gateway_method" "pedido_proxy" {
   rest_api_id   = aws_api_gateway_rest_api.main.id
-  resource_id   = aws_api_gateway_resource.proxy_pedido.id
+  resource_id   = aws_api_gateway_resource.pedido_proxy.id
   http_method   = "ANY"
   authorization = "NONE"
   request_parameters = {
@@ -160,9 +168,21 @@ resource "aws_api_gateway_method" "proxy_pedido" {
   }
 }
 
-resource "aws_api_gateway_integration" "proxy_pedido" {
+resource "aws_api_gateway_method" "pedido" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.pedido.id
+  http_method   = "ANY"
+  authorization = "NONE"
+  request_parameters = {
+    "method.request.path.proxy"           = true
+    "method.request.header.Authorization" = true
+  }
+
+}
+
+resource "aws_api_gateway_integration" "pedido_proxy" {
   rest_api_id             = aws_api_gateway_rest_api.main.id
-  resource_id             = aws_api_gateway_resource.proxy_pedido.id
+  resource_id             = aws_api_gateway_resource.pedido_proxy.id
   http_method             = "ANY"
   integration_http_method = "ANY"
   type                    = "HTTP_PROXY"
@@ -176,17 +196,24 @@ resource "aws_api_gateway_integration" "proxy_pedido" {
   }
   connection_type = "VPC_LINK"
   connection_id   = "${aws_api_gateway_vpc_link.vpc_pedido.id}"
+
 }
 
-resource "aws_api_gateway_resource" "proxy_pagamento" {
+resource "aws_api_gateway_resource" "pagamento_proxy" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  parent_id   = aws_api_gateway_resource.pagamento.id
+  path_part   = "{proxy+}"
+}
+
+resource "aws_api_gateway_resource" "pagamento" {
   rest_api_id = aws_api_gateway_rest_api.main.id
   parent_id   = aws_api_gateway_rest_api.main.root_resource_id
   path_part   = "pagamento"
 }
 
-resource "aws_api_gateway_method" "proxy_pagamento" {
+resource "aws_api_gateway_method" "pagamento_proxy" {
   rest_api_id   = aws_api_gateway_rest_api.main.id
-  resource_id   = aws_api_gateway_resource.proxy_pagamento.id
+  resource_id   = aws_api_gateway_resource.pagamento_proxy.id
   http_method   = "ANY"
   authorization = "NONE"
   request_parameters = {
@@ -195,9 +222,20 @@ resource "aws_api_gateway_method" "proxy_pagamento" {
   }
 }
 
-resource "aws_api_gateway_integration" "proxy_pagamento" {
+resource "aws_api_gateway_method" "pagamento" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.pagamento.id
+  http_method   = "ANY"
+  authorization = "NONE"
+  request_parameters = {
+    "method.request.path.proxy"           = true
+    "method.request.header.Authorization" = true
+  }
+}
+
+resource "aws_api_gateway_integration" "pagamento_proxy" {
   rest_api_id             = aws_api_gateway_rest_api.main.id
-  resource_id             = aws_api_gateway_resource.proxy_pagamento.id
+  resource_id             = aws_api_gateway_resource.pagamento_proxy.id
   http_method             = "ANY"
   integration_http_method = "ANY"
   type                    = "HTTP_PROXY"
@@ -213,15 +251,21 @@ resource "aws_api_gateway_integration" "proxy_pagamento" {
   connection_id   = "${aws_api_gateway_vpc_link.vpc_pagamento.id}"
 }
 
-resource "aws_api_gateway_resource" "proxy_producao" {
+resource "aws_api_gateway_resource" "producao_proxy" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  parent_id   = aws_api_gateway_resource.producao.id
+  path_part   = "{proxy+}"
+}
+
+resource "aws_api_gateway_resource" "producao" {
   rest_api_id = aws_api_gateway_rest_api.main.id
   parent_id   = aws_api_gateway_rest_api.main.root_resource_id
   path_part   = "producao"
 }
 
-resource "aws_api_gateway_method" "proxy_producao" {
+resource "aws_api_gateway_method" "producao_proxy" {
   rest_api_id   = aws_api_gateway_rest_api.main.id
-  resource_id   = aws_api_gateway_resource.proxy_producao.id
+  resource_id   = aws_api_gateway_resource.producao_proxy.id
   http_method   = "ANY"
   authorization = "NONE"
   request_parameters = {
@@ -230,9 +274,20 @@ resource "aws_api_gateway_method" "proxy_producao" {
   }
 }
 
-resource "aws_api_gateway_integration" "proxy_producao" {
+resource "aws_api_gateway_method" "producao" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.producao.id
+  http_method   = "ANY"
+  authorization = "NONE"
+  request_parameters = {
+    "method.request.path.proxy"           = true
+    "method.request.header.Authorization" = true
+  }
+}
+
+resource "aws_api_gateway_integration" "producao_proxy" {
   rest_api_id             = aws_api_gateway_rest_api.main.id
-  resource_id             = aws_api_gateway_resource.proxy_producao.id
+  resource_id             = aws_api_gateway_resource.producao_proxy.id
   http_method             = "ANY"
   integration_http_method = "ANY"
   type                    = "HTTP_PROXY"
@@ -257,13 +312,13 @@ resource "aws_api_gateway_deployment" "deployment_eks" {
   }
 
   depends_on = [ 
-    aws_api_gateway_integration.proxy_pagamento,
-    aws_api_gateway_integration.proxy_pedido,
-    aws_api_gateway_integration.proxy_producao,
+    aws_api_gateway_integration.pedido_proxy,
+    aws_api_gateway_integration.pagamento_proxy,
+    aws_api_gateway_integration.producao_proxy,
     aws_api_gateway_rest_api.main,
-    aws_api_gateway_method.proxy_pagamento,
-    aws_api_gateway_method.proxy_pedido,
-    aws_api_gateway_method.proxy_producao
+    aws_api_gateway_method.pagamento_proxy,
+    aws_api_gateway_method.pedido_proxy,
+    aws_api_gateway_method.producao_proxy
     ]
 }
 
