@@ -17,35 +17,38 @@ spec:
         - name: techlanches-api-producao
           image: g124soat/techlanches-producao:latest
           imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
           resources:
             requests:
               cpu: "500m"
               memory: "500Mi"
           env:
             - name: DOTNET_ENVIRONMENT
-              valueFrom: 
+              valueFrom:
                 configMapKeyRef:
                   name: api-producao-configmap
                   key: DotnetEnviroment
             - name: PEDIDO_SERVICE
-              valueFrom: 
+              valueFrom:
                 configMapKeyRef:
                   name: api-pedido-configmap
                   key: ServiceName
-          readinessProbe:
-            tcpSocket:
-              port: 5000
-            initialDelaySeconds: 5
-            failureThreshold: 2
-            timeoutSeconds: 3
-            periodSeconds: 10
           livenessProbe:
-            tcpSocket:
-              port: 5000
-            initialDelaySeconds: 15
-            failureThreshold: 2
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 5
             timeoutSeconds: 3
-            periodSeconds: 20
+
 ---
 apiVersion: v1
 kind: Service
@@ -59,6 +62,6 @@ spec:
     app: techlanches-api-producao
   ports:
     - protocol: TCP
-      port: 5060
+      port: 5058
       targetPort: 8080
   type: LoadBalancer

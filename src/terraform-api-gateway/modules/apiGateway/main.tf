@@ -145,6 +145,8 @@ resource "aws_api_gateway_rest_api" "main" {
   }
 }
 
+###################################################################################################
+
 resource "aws_api_gateway_resource" "pedido_proxy" {
   rest_api_id = aws_api_gateway_rest_api.main.id
   parent_id   = aws_api_gateway_resource.pedido.id
@@ -168,18 +170,6 @@ resource "aws_api_gateway_method" "pedido_proxy" {
   }
 }
 
-resource "aws_api_gateway_method" "pedido" {
-  rest_api_id   = aws_api_gateway_rest_api.main.id
-  resource_id   = aws_api_gateway_resource.pedido.id
-  http_method   = "ANY"
-  authorization = "NONE"
-  request_parameters = {
-    "method.request.path.proxy"           = true
-    "method.request.header.Authorization" = true
-  }
-
-}
-
 resource "aws_api_gateway_integration" "pedido_proxy" {
   rest_api_id             = aws_api_gateway_rest_api.main.id
   resource_id             = aws_api_gateway_resource.pedido_proxy.id
@@ -196,8 +186,9 @@ resource "aws_api_gateway_integration" "pedido_proxy" {
   }
   connection_type = "VPC_LINK"
   connection_id   = "${aws_api_gateway_vpc_link.vpc_pedido.id}"
-
 }
+
+###################################################################################################
 
 resource "aws_api_gateway_resource" "pagamento_proxy" {
   rest_api_id = aws_api_gateway_rest_api.main.id
@@ -222,16 +213,6 @@ resource "aws_api_gateway_method" "pagamento_proxy" {
   }
 }
 
-resource "aws_api_gateway_method" "pagamento" {
-  rest_api_id   = aws_api_gateway_rest_api.main.id
-  resource_id   = aws_api_gateway_resource.pagamento.id
-  http_method   = "ANY"
-  authorization = "NONE"
-  request_parameters = {
-    "method.request.path.proxy"           = true
-    "method.request.header.Authorization" = true
-  }
-}
 
 resource "aws_api_gateway_integration" "pagamento_proxy" {
   rest_api_id             = aws_api_gateway_rest_api.main.id
@@ -251,6 +232,8 @@ resource "aws_api_gateway_integration" "pagamento_proxy" {
   connection_id   = "${aws_api_gateway_vpc_link.vpc_pagamento.id}"
 }
 
+##################################################################################################
+
 resource "aws_api_gateway_resource" "producao_proxy" {
   rest_api_id = aws_api_gateway_rest_api.main.id
   parent_id   = aws_api_gateway_resource.producao.id
@@ -266,17 +249,6 @@ resource "aws_api_gateway_resource" "producao" {
 resource "aws_api_gateway_method" "producao_proxy" {
   rest_api_id   = aws_api_gateway_rest_api.main.id
   resource_id   = aws_api_gateway_resource.producao_proxy.id
-  http_method   = "ANY"
-  authorization = "NONE"
-  request_parameters = {
-    "method.request.path.proxy"           = true
-    "method.request.header.Authorization" = true
-  }
-}
-
-resource "aws_api_gateway_method" "producao" {
-  rest_api_id   = aws_api_gateway_rest_api.main.id
-  resource_id   = aws_api_gateway_resource.producao.id
   http_method   = "ANY"
   authorization = "NONE"
   request_parameters = {
@@ -303,6 +275,8 @@ resource "aws_api_gateway_integration" "producao_proxy" {
   connection_id   = "${aws_api_gateway_vpc_link.vpc_producao.id}"
 }
 
+###################################################################################################
+
 
 resource "aws_api_gateway_deployment" "deployment_eks" {
   rest_api_id = aws_api_gateway_rest_api.main.id
@@ -311,15 +285,12 @@ resource "aws_api_gateway_deployment" "deployment_eks" {
     create_before_destroy = true
   }
 
-  depends_on = [ 
+  depends_on = [  
     aws_api_gateway_integration.pedido_proxy,
     aws_api_gateway_integration.pagamento_proxy,
     aws_api_gateway_integration.producao_proxy,
-    aws_api_gateway_rest_api.main,
-    aws_api_gateway_method.pagamento_proxy,
-    aws_api_gateway_method.pedido_proxy,
-    aws_api_gateway_method.producao_proxy
-    ]
+    aws_api_gateway_rest_api.main
+  ]
 }
 
 resource "aws_api_gateway_stage" "stage_eks" {
