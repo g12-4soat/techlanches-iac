@@ -25,12 +25,12 @@ spec:
               memory: "500Mi"
           env:
             - name: DOTNET_ENVIRONMENT
-              valueFrom: 
+              valueFrom:
                 configMapKeyRef:
                   name: api-producao-configmap
                   key: DotnetEnviroment
             - name: PEDIDO_SERVICE
-              valueFrom: 
+              valueFrom:
                 configMapKeyRef:
                   name: api-pedido-configmap
                   key: ServiceName
@@ -62,6 +62,6 @@ spec:
     app: techlanches-api-producao
   ports:
     - protocol: TCP
-      port: 5060
+      port: 5058
       targetPort: 8080
   type: LoadBalancer
