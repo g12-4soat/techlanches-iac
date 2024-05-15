@@ -78,19 +78,19 @@ resource "aws_lambda_permission" "apigateway_lambda_cadastro" {
 ###################################################################################################
 
 data "aws_lb" "eks_lb_api_pedido" {
-   tags = {
+  tags = {
     "kubernetes.io/service-name" = "techlanches/api-pedido-service"
   }
 }
 
 data "aws_lb" "eks_lb_api_pagamento" {
-   tags = {
+  tags = {
     "kubernetes.io/service-name" = "techlanches/api-pagamento-service"
   }
 }
 
 data "aws_lb" "eks_lb_api_producao" {
-   tags = {
+  tags = {
     "kubernetes.io/service-name" = "techlanches/api-producao-service"
   }
 }
@@ -185,7 +185,7 @@ resource "aws_api_gateway_integration" "pedido_proxy" {
     "integration.request.header.Authorization" = "method.request.header.Authorization"
   }
   connection_type = "VPC_LINK"
-  connection_id   = "${aws_api_gateway_vpc_link.vpc_pedido.id}"
+  connection_id   = aws_api_gateway_vpc_link.vpc_pedido.id
 }
 
 ###################################################################################################
@@ -229,7 +229,7 @@ resource "aws_api_gateway_integration" "pagamento_proxy" {
     "integration.request.header.Authorization" = "method.request.header.Authorization"
   }
   connection_type = "VPC_LINK"
-  connection_id   = "${aws_api_gateway_vpc_link.vpc_pagamento.id}"
+  connection_id   = aws_api_gateway_vpc_link.vpc_pagamento.id
 }
 
 ##################################################################################################
@@ -263,7 +263,7 @@ resource "aws_api_gateway_integration" "producao_proxy" {
   http_method             = "ANY"
   integration_http_method = "ANY"
   type                    = "HTTP_PROXY"
-  uri                     = "http://${data.aws_lb.eks_lb_api_producao.dns_name}:5060/{proxy}"
+  uri                     = "http://${data.aws_lb.eks_lb_api_producao.dns_name}:5058/{proxy}"
   passthrough_behavior    = "WHEN_NO_MATCH"
   content_handling        = "CONVERT_TO_TEXT"
   request_parameters = {
@@ -272,7 +272,7 @@ resource "aws_api_gateway_integration" "producao_proxy" {
     "integration.request.header.Authorization" = "method.request.header.Authorization"
   }
   connection_type = "VPC_LINK"
-  connection_id   = "${aws_api_gateway_vpc_link.vpc_producao.id}"
+  connection_id   = aws_api_gateway_vpc_link.vpc_producao.id
 }
 
 ###################################################################################################
@@ -285,7 +285,7 @@ resource "aws_api_gateway_deployment" "deployment_eks" {
     create_before_destroy = true
   }
 
-  depends_on = [  
+  depends_on = [
     aws_api_gateway_integration.pedido_proxy,
     aws_api_gateway_integration.pagamento_proxy,
     aws_api_gateway_integration.producao_proxy,
