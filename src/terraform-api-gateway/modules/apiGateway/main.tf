@@ -49,10 +49,33 @@ resource "aws_api_gateway_integration" "lambda_cadastro" {
   uri                     = var.arn_lambda_cadastro
 }
 
+resource "aws_api_gateway_resource" "inativacao" {
+  rest_api_id = aws_api_gateway_rest_api.tech_lanches_api_gateweay.id
+  parent_id   = aws_api_gateway_rest_api.tech_lanches_api_gateweay.root_resource_id
+  path_part   = "inativacao"
+}
+
+resource "aws_api_gateway_method" "inativacao" {
+  rest_api_id   = aws_api_gateway_rest_api.tech_lanches_api_gateweay.id
+  resource_id   = aws_api_gateway_resource.inativacao.id
+  http_method   = "POST"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "lambda_inativacao" {
+  rest_api_id             = aws_api_gateway_rest_api.tech_lanches_api_gateweay.id
+  resource_id             = aws_api_gateway_method.inativacao.resource_id
+  http_method             = aws_api_gateway_method.inativacao.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = var.arn_lambda_inativacao
+}
+
 resource "aws_api_gateway_deployment" "gateway_deployment" {
   depends_on = [
     aws_api_gateway_integration.lambda_auth,
-    aws_api_gateway_integration.lambda_cadastro
+    aws_api_gateway_integration.lambda_cadastro,
+    aws_api_gateway_integration.lambda_inativacao
   ]
   rest_api_id = aws_api_gateway_rest_api.tech_lanches_api_gateweay.id
   stage_name  = var.environment
@@ -71,6 +94,14 @@ resource "aws_lambda_permission" "apigateway_lambda_cadastro" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
   function_name = var.nome_lambda_cadastro
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.tech_lanches_api_gateweay.execution_arn}/*/*"
+}
+
+resource "aws_lambda_permission" "apigateway_lambda_inativacao" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = var.nome_lambda_inativacao
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_api_gateway_rest_api.tech_lanches_api_gateweay.execution_arn}/*/*"
 }
