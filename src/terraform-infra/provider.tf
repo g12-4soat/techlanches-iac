@@ -7,7 +7,7 @@ terraform {
   }
 
   backend "s3" {
-    bucket = "tech-lanches-terraform"
+    bucket = "tech-lanches-terraform-vitor"
     key    = "tech-lanches-terraform-infra/terraform.tfstate"
     region = "us-east-1"
   }
