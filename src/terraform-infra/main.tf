@@ -11,7 +11,7 @@ module "rds" {
   source = "./modules/rds"
 }
 
-# module "eks" {
-#   source = "./modules/eks"
-#   security_group_id = module.rds.security_group_id
-# }
+module "eks" {
+  source = "./modules/eks"
+  security_group_id = module.rds.security_group_id
+}
