@@ -24,6 +24,25 @@ resource "aws_lambda_function" "tech_lanches_lambda_cadastro" {
   memory_size = 512
 }
 
+
+data "aws_lb" "eks_lb_api_pedido" {
+  tags = {
+    "kubernetes.io/service-name" = "techlanches/api-pedido-service"
+  }
+}
+
+data "aws_lb" "eks_lb_api_pagamento" {
+  tags = {
+    "kubernetes.io/service-name" = "techlanches/api-pagamento-service"
+  }
+}
+
+data "aws_lb" "eks_lb_api_producao" {
+  tags = {
+    "kubernetes.io/service-name" = "techlanches/api-producao-service"
+  }
+}
+
 resource "aws_lambda_function" "tech_lanches_lambda_inativacao" {
   function_name = "tech-lanches-lambda-inativacao"
   filename      = "../../auth_lambda.zip"
@@ -35,4 +54,10 @@ resource "aws_lambda_function" "tech_lanches_lambda_inativacao" {
   }
   timeout     = 30
   memory_size = 512
+   environment {
+    variables = {
+      PEDIDO_SERVICE    = data.aws_lb.eks_lb_api_pedido.dns_name
+      PAGAMENTO_SERVICE  = data.aws_lb.eks_lb_api_pagamento.dns_name
+    }
+  }
 }
